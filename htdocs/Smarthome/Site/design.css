@@ -1,0 +1,1059 @@
+/*
+ * design.css — Smart Home 2026
+ * Fisierul principal de stilizare al interfetei web.
+ *
+ * Structura:
+ *   1. Variabile globale (paleta de culori, raze, umbre)
+ *   2. Reset global si body
+ *   3. Ecran login
+ *   4. Header si sidebar (navigare)
+ *   5. Zona de continut si pagini
+ *   6. Carduri si grid-uri
+ *   7. Inputuri, butoane, search
+ *   8. Tabele
+ *   9. Badge-uri si iconite de status
+ *  10. Mesaje de eroare si animatii fade
+ *  11. Animatii complexe (casa, vreme, ventilator, bec)
+ *  12. Responsive mobile (max-width: 768px)
+ *
+ * Paleta principala:
+ *   Fundal:  #0b0f19 (albastru foarte inchis)
+ *   Card:    #121826
+ *   Accent:  #0ea5e9 (cyan/albastru deschis)
+ *   Verde:   #22c55e  |  Rosu: #ef4444  |  Galben: #ffb703
+ */
+
+/* =============================================================
+   SMART HOME - design.css (optimizat)
+   - Variabile CSS pentru paleta
+   - Reguli consolidate, fara duplicate
+   - !important doar acolo unde chiar e necesar
+   - Animatiile grupate la final
+   ============================================================= */
+
+:root {
+  /* Paleta */
+  --bg:          #0b0f19;
+  --bg-card:     #121826;
+  --bg-card-alt: #1a1d24;
+  --bg-tabel:    #14161c;
+  --border-tabel:#2a2e39;
+
+  --txt:         #e0e0e0;
+  --txt-muted:   #93a5be;
+  --txt-faint:   #7b8ea8;
+  --txt-grey:    #a0a0a0;
+
+  --accent:      #0ea5e9;
+  --accent-2:    #1cb5e0;
+  --accent-dark: #0284c7;
+  --accent-glow: rgba(14,165,233,.4);
+
+  --verde:       #22c55e;
+  --rosu:        #ef4444;
+  --galben:      #ffb703;
+
+  /* Raze, umbre */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.05);
+  --shadow-hover:0 15px 45px rgba(0,0,0,.4);
+
+  --border-soft: 1px solid rgba(255,255,255,.05);
+  --border-top:  1px solid rgba(255,255,255,.08);
+}
+
+/* =================================================================
+   1. RESET GLOBAL SI BODY
+   Font principal, fundal inchis, overflow.
+================================================================= */
+/* ================= GLOBAL ================= */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg);
+  color: var(--txt);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+#ecran-aplicatie { display: none; }
+
+/* ================= LOGIN ================= */
+#ecran-login {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  background-color: var(--bg);
+  overflow: hidden;
+}
+#ecran-login::before {
+  content: "";
+  position: absolute;
+  width: 400px; height: 400px;
+  background: var(--accent);
+  filter: blur(150px);
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: .1; z-index: 0;
+  animation: pulsareLumina 6s infinite alternate ease-in-out;
+}
+
+.login-box {
+  position: relative; z-index: 1;
+  background-color: var(--bg-card);
+  border: 1px solid rgba(255,255,255,.1);  /* unificat cu fix-ul de mai jos */
+  border-top: var(--border-top);
+  border-radius: var(--r-xl);
+  padding: 40px;
+  width: 100%; max-width: 340px;
+  text-align: center;
+  box-shadow: 0 15px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.login-box h2 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 24px; font-weight: 700;
+  letter-spacing: -.5px;
+}
+.login-box p,
+.login-box .subtitle {
+  color: var(--txt-faint);
+  font-size: 14px;
+  margin: 0 0 30px;
+}
+
+.input-group { position: relative; width: 100%; margin-bottom: 20px; z-index: 10; }
+
+.login-input {
+  width: 100%;
+  padding: 15px 45px 15px 15px;
+  background-color: var(--bg);
+  border: var(--border-soft);
+  color: #fff;
+  border-radius: var(--r-md);
+  font-size: 15px; font-weight: 500;
+  box-sizing: border-box;
+  transition: all .3s ease;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.2);
+}
+.login-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(14,165,233,.2), inset 0 2px 5px rgba(0,0,0,.2);
+}
+/* Anti-autocomplete browser */
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:focus,
+.login-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--bg) inset !important;
+  -webkit-text-fill-color: #fff !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--accent-2) 0%, var(--accent) 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 15px; font-weight: 700;
+  cursor: pointer;
+  transition: all .3s ease;
+  margin-top: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 8px 20px rgba(14,165,233,.25);
+}
+.btn-login:hover {
+  background: linear-gradient(135deg, #15a1cc 0%, var(--accent-dark) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px var(--accent-glow);
+}
+
+.toggle-parola {
+  position: absolute; right: 15px; top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer; z-index: 15;
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px;
+  color: var(--txt-faint);
+  transition: color .3s ease;
+}
+.toggle-parola svg { width: 100%; height: 100%; }
+.toggle-parola:hover { color: var(--accent); }
+#input-pass { padding-right: 45px; }
+
+/* Iconita casa (login) - alba pe fundal cyan */
+.login-box .casa-animata {
+  background-color: var(--accent);
+  border-radius: var(--r-lg);
+  padding: 12px;
+  width: 64px; height: 64px;
+  box-sizing: border-box;
+  filter: drop-shadow(0 8px 20px var(--accent-glow));
+  margin-bottom: 15px;
+}
+.login-box .casa-animata * { stroke: #fff; }
+.login-box .fum { stroke: #fff; fill: #fff; }
+.login-box .logo-animat-container { margin-bottom: 20px; }
+
+/* Titlu login - varianta curata (fara holografic) */
+.login-box .titlu-holografic {
+  background: none;
+  -webkit-background-clip: initial;
+  -webkit-text-fill-color: #fff;
+  text-shadow: none;
+  font-size: 24px;
+  letter-spacing: -.5px;
+  font-weight: 700;
+  text-transform: none;
+  margin: 5px 0 30px;
+}
+
+/* =================================================================
+   3. HEADER SI SIDEBAR
+   Header sticky cu blur, sidebar cu tranzitie slide-in.
+   Link activ evidentiat cu accent cyan.
+================================================================= */
+/* =================================================================
+   2. HEADER SI SIDEBAR
+   Header sticky cu blur, sidebar cu tranzitie slide-in.
+   Link activ evidentiat cu accent cyan.
+================================================================= */
+/* ================= MENIU LATERAL & HEADER ================= */
+#sidebar {
+  position: fixed;top: 0; bottom: 0; left: -260px;
+  width: 260px; height: 100vh;background: rgba(15,15,20,.65);
+  backdrop-filter: blur(25px);-webkit-backdrop-filter: blur(25px);
+  border-right: var(--border-soft);box-shadow: 10px 0 30px rgba(0,0,0,.5);
+  transition: .4s cubic-bezier(.4,0,.2,1);padding-top: 80px;
+  box-sizing: border-box;z-index: 1000;
+}
+#sidebar.deschis { left: 0; }
+#sidebar a {
+  display: block;padding: 12px 20px;
+  margin: 8px 15px;text-decoration: none;
+  font-size: 16px; font-weight: 500;color: var(--txt-grey);
+  border-radius: var(--r-md);transition: all .3s ease;
+}
+#sidebar a:hover {
+  color: #fff;background-color: rgba(255,255,255,.05);transform: translateX(5px);
+}
+#sidebar a.activ {
+  color: #fff;
+  background-color: var(--accent);
+  box-shadow: 0 4px 15px rgba(14,165,233,.3);
+}
+.header {
+  display: flex; align-items: center;background: rgba(10,10,15,.6);
+  backdrop-filter: blur(15px);-webkit-backdrop-filter: blur(15px);
+  border-bottom: var(--border-soft);padding: 15px 20px;
+  position: sticky; top: 0;z-index: 1001;
+}
+.btn-meniu {
+  font-size: 20px; font-weight: bold;
+  background: none; border: none;
+  color: var(--txt);cursor: pointer;
+  margin-right: 20px;transition: color .3s;
+}
+.btn-meniu:hover { color: var(--accent); }
+.titlu-pagina {
+  font-size: 20px; font-weight: 600;
+  margin: 0 40px 0 0;text-align: center;
+  flex-grow: 1;letter-spacing: .5px;
+}
+
+/* =================================================================
+   3. ZONA DE CONTINUT SI PAGINI
+   Paginile sunt toate in DOM, vizibila doar cea cu clasa .activa.
+   Animatie de intrare la schimbarea paginii.
+================================================================= */
+/* ================= CONTINUT & PAGINI ================= */
+.continut { padding: 30px 20px; max-width: 1200px; margin: 0 auto; }
+.pagina { display: none; }
+.pagina.activa { display: block; animation: intrareLină .6s ease-out; }
+.sectiune-sistem { margin-bottom: 50px; }
+
+.titlu-sistem {
+  font-size: 20px; font-weight: 600;
+  color: var(--txt);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  position: relative;
+  display: inline-block;
+}
+.titlu-sistem::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 40px; height: 3px;
+  background: var(--accent);
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(14,165,233,.5);
+}
+.titlu-vreme-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+.titlu-vreme-container .titlu-sistem { margin: 0; }
+
+/* =================================================================
+   4. CARDURI SI GRID-URI
+   Carduri cu fundal semi-transparent, border subtil si glow colorat
+   la hover sau cand sistemul e activ (verde/rosu/galben).
+================================================================= */
+/* ================= CARDURI & GRID-URI ================= */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 30px;
+  margin-top: 10px;
+}
+.container-carduri,
+.containter-carduri {  /* typo pastrat pentru compatibilitate HTML */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
+  align-items: stretch;
+}
+.container-lumini {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 30px;
+  width: 110%;
+}
+.card-mare, .card {
+  background-color: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border-soft);
+  border-top: var(--border-top);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: transform .3s ease, box-shadow .3s ease;
+  box-shadow: var(--shadow-card);
+}
+.card-mare:hover, .card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: rgba(255,255,255,.1);
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+}
+.card-header h3 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--txt-muted);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px 15px;
+}
+
+/* Etichete (card-titlu + data-label) - aceleasi reguli */
+.card-titlu,
+.data-label {
+  font-size: 12px;
+  color: var(--txt-faint);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+}
+.data-label { margin-bottom: 8px; }
+
+/* Valori mari (card-valoare + data-valoare) - aceleasi reguli */
+.card-valoare,
+.data-valoare {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+}
+.card-valoare { margin-bottom: auto; }
+
+.data-group { display: flex; flex-direction: column; }
+
+#grup-prag-actiune,
+#grup-intensitate-actiune,
+#grup-culoare-actiune,
+#grup-putere-actiune {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: var(--border-soft);
+}
+
+/* =================================================================
+   5. INPUTURI SI BUTOANE
+   Inputuri dark, butoane cu hover, slider intensitate,
+   color picker rotund, search bar cu focus glow.
+================================================================= */
+/* ================= INPUT-URI & BUTOANE ================= */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(14,165,233,.4);
+}
+
+.btn-actiune {
+  background: rgba(255,255,255,.05);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.1);
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  margin-top: 15px;
+  font-weight: 600;
+  transition: all .3s ease;
+}
+.btn-actiune:hover {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.2);
+}
+.btn-albastru {
+  background-color: var(--accent);
+  border: none;
+  box-shadow: 0 4px 15px rgba(14,165,233,.2);
+}
+.btn-albastru:hover {
+  background-color: var(--accent-dark);
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.input-temp {
+  background: rgba(0,0,0,.3);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.1);
+  padding: 10px;
+  width: 70px;
+  border-radius: var(--r-sm);
+  font-size: 16px;
+  margin-top: 5px;
+  transition: border-color .3s;
+}
+.input-temp:focus { border-color: var(--accent); }
+
+.input-color {
+  cursor: pointer;
+  border: none; background: none;
+  width: 45px; height: 45px;
+  padding: 0;
+  margin-top: 10px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.input-color::-webkit-color-swatch-wrapper { padding: 0; }
+.input-color::-webkit-color-swatch { border: none; border-radius: 50%; }
+
+.slider-lumina {
+  -webkit-appearance: none;
+  width: 100%; height: 6px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.1);
+  margin: 20px 0 10px;
+}
+.slider-lumina::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(14,165,233,.5);
+  transition: transform .1s;
+}
+.slider-lumina::-webkit-slider-thumb:active { transform: scale(1.2); }
+
+/* Search modern (vreme) */
+.search-modern {
+  display: flex;
+  align-items: stretch;
+  background: rgba(0,0,0,.4);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 30px;
+  overflow: hidden;
+  width: 100%; max-width: 260px;
+  transition: border-color .3s, box-shadow .3s;
+}
+.search-modern:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(14,165,233,.3);
+}
+.search-modern input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 10px 15px;
+  font-size: 14px;
+  outline: none;
+}
+.search-modern button {
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  padding: 0 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .3s;
+}
+.search-modern button:hover { background: var(--accent-dark); }
+.search-modern button svg { width: 18px; height: 18px; }
+
+/* =================================================================
+   6. TABELE
+   Stiluri unificate pentru: dispozitive conectate, arhiva utilizatori,
+   jurnal ventilatie. Dark theme cu hover highlight per rand.
+================================================================= */
+/* ================= TABELE ================= */
+.tabel-responsive,
+#vedere-live,
+#vedere-arhiva,
+#tabel-jurnal-vent,
+#tabel-jurnal-cmd {
+  background-color: var(--bg-card-alt);
+  border: 1px solid var(--border-tabel);
+  border-radius: var(--r-md);
+  box-shadow: 0 8px 16px rgba(0,0,0,.4);
+  width: 100%;
+  overflow-x: auto;
+}
+.tabel-responsive table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #e2e8f0;
+  text-align: left;
+}
+.tabel-responsive thead th {
+  background-color: var(--bg-tabel);
+  color: #94a3b8;
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 16px;
+  border-bottom: 2px solid var(--border-tabel);
+}
+.tabel-responsive tbody td {
+  padding: 16px;
+  border-bottom: 1px solid #262933;
+  vertical-align: middle;
+  font-size: 14px;
+}
+.tabel-responsive tbody tr { transition: background-color .2s ease; }
+.tabel-responsive tbody tr:hover { background-color: rgba(14,165,233,.08); }
+.tabel-responsive tbody tr:last-child td { border-bottom: none; }
+
+#vedere-live > div:last-child,
+#vedere-arhiva > div:last-child {
+  background-color: var(--bg-tabel);
+  border-top: 1px solid var(--border-tabel);
+}
+
+/* ================= STATUS & BADGE-URI ================= */
+.status-online { color: var(--verde); font-weight: bold; }
+.status-offline { color: var(--rosu); font-weight: bold; }
+
+.status-icon {
+  width: 24px; height: 24px;
+  vertical-align: middle;
+  margin-left: 10px;
+  margin-top: -4px;
+  stroke: currentColor;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: .5px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.15);
+  line-height: 1;
+}
+.status-badge .status-icon {
+  margin: 0 0 0 8px;
+  width: 16px; height: 16px;
+}
+
+.badge-verde    { background-color: rgba(34,197,94,.15);  color: var(--verde);  border: 1px solid rgba(34,197,94,.3);  }
+.badge-rosu     { background-color: rgba(239,68,68,.15);  color: var(--rosu);   border: 1px solid rgba(239,68,68,.3);  }
+.badge-galben   { background-color: rgba(255,183,3,.15);  color: var(--galben); border: 1px solid rgba(255,183,3,.3);  }
+.badge-albastru { background-color: rgba(14,165,233,.15); color: var(--accent); border: 1px solid rgba(14,165,233,.3); }
+
+/* Glow dinamic pe carduri active (folosesc !important ca sa bata border-ul de baza) */
+.card-active-verde  { border-color: rgba(34,197,94,.25)  !important; box-shadow: 0 10px 40px rgba(34,197,94,.08)
+    !important; }
+.card-active-rosu   { border-color: rgba(239,68,68,.25)  !important; box-shadow: 0 10px 40px rgba(239,68,68,.08)
+    !important; }
+.card-active-galben { border-color: rgba(255,183,3,.25)  !important; box-shadow: 0 10px 40px rgba(255,183,3,.05)
+    !important; }
+
+/* =================================================================
+   7. MESAJE DE EROARE, STARI SI ANIMATII FADE
+   Badge-uri semantice: verde=ok, galben=activ, rosu=eroare, albastru=dinamic.
+   Animatii: shake la eroare login, spinner loading, fade in/out intre ecrane.
+================================================================= */
+/* ================= MESAJE & STARI ================= */
+.mesaj-eroare {
+  color: var(--rosu);
+  margin-top: 15px;
+  font-size: 14px;
+  min-height: 20px;
+  font-weight: bold;
+}
+.mesaj-eroare-acces {
+  background: rgba(239,68,68,.1);
+  backdrop-filter: blur(10px);
+  color: var(--rosu);
+  padding: 40px;
+  text-align: center;
+  border: 1px solid rgba(239,68,68,.3);
+  border-radius: var(--r-lg);
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 30px;
+}
+
+.shake-error { animation: scuturareEroare .5s cubic-bezier(.36,.07,.19,.97) both; }
+.input-eroare {
+  border-color: var(--rosu) !important;
+  box-shadow: 0 0 15px rgba(239,68,68,.4) !important;
+}
+
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: .9;
+  color: transparent !important;
+}
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 22px; height: 22px;
+  top: 50%; left: 50%;
+  margin: -11px 0 0 -11px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: rotireSpinner .8s linear infinite;
+}
+
+/* Tranzitii fade pentru login -> app */
+.fade-out-login {
+  opacity: 0 !important;
+  transform: scale(.95);
+  transition: all .6s ease-in-out !important;
+  pointer-events: none;
+}
+.fade-in-app    { animation: intrareLină .8s ease-out forwards; }
+.fade-out-app   { animation: iesireLina .6s ease-in forwards; pointer-events: none; }
+.fade-in-login  { animation: intrareLoginLina .8s ease-out forwards; }
+
+/* =================================================================
+   8. ICONITE CARDURI
+   SVG-urile din coltul cardurilor, cu glow cyan si scale la hover.
+================================================================= */
+/* ================= CARDURI - ICONITE ================= */
+.card-icon { display: flex; align-items: center; justify-content: center; }
+.card-icon svg {
+  width: 28px; height: 28px;
+  stroke: var(--accent);
+  opacity: .8;
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+  transition: all .3s ease;
+}
+.card-mare:hover .card-icon svg {
+  opacity: 1;
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 12px rgba(14,165,233,.7));
+}
+
+/* =================================================================
+   9. ANIMATII COMPLEXE SVG
+   Animate doar la hover pe card (animation-play-state: running).
+   - Casa cu fum (login)
+   - Vreme: secventa soare/nori/ploaie la 12s
+   - Ventilator: elice + linii vant
+   - Bec: pulsatie + raze
+   - Lacat: rotire toarta
+================================================================= */
+/* ================= ANIMATII COMPLEXE (casa, vreme, ventilator, bec) ================= */
+.logo-animat-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 25px;
+}
+.casa-animata {
+  width: 70px; height: 70px;
+  overflow: visible;
+  filter: drop-shadow(0 0 8px rgba(14,165,233,.5));
+}
+.titlu-holografic {
+  margin: 15px 0;
+  font-size: 32px;
+  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: linear-gradient(180deg, #7dd3fc 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.fum { opacity: 0; transform-origin: center; }
+.fum-1 { animation: urcaFum 2.5s infinite ease-in; }
+.fum-2 { animation: urcaFum 2.5s infinite ease-in 0.8s; }
+.fum-3 { animation: urcaFum 2.5s infinite ease-in 1.6s; }
+
+.vreme-animata-wrapper,
+.ventilatie-animata-wrapper,
+.lumina-animata-wrapper {
+  position: relative;
+  width: 32px; height: 32px;
+  overflow: visible;
+}
+.meteo-secventa,
+.vent-elice, .vent-vant,
+.lumina-bec, .lumina-raze {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  stroke: var(--accent);
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+  overflow: visible;
+}
+.meteo-secventa { opacity: 0; }
+
+/* Animatii oprite by default, pornesc la hover pe card */
+.meteo-soare     { animation: seq-soare    12s infinite cubic-bezier(.4,0,.2,1); animation-play-state: paused; }
+.meteo-nor-soare { animation: seq-nor-soare 12s infinite cubic-bezier(.4,0,.2,1); animation-play-state: paused; }
+.meteo-ploaie    { animation: seq-ploaie   12s infinite cubic-bezier(.4,0,.2,1); animation-play-state: paused; }
+.raze-soare, .soare-ascuns, .picaturi line,
+.vent-elice, .vent-vant path,
+.lumina-bec, .lumina-raze { animation-play-state: paused; }
+
+.card-mare:hover .meteo-soare,
+.card-mare:hover .meteo-nor-soare,
+.card-mare:hover .meteo-ploaie,
+.card-mare:hover .raze-soare,
+.card-mare:hover .soare-ascuns,
+.card-mare:hover .picaturi line,
+.card-mare:hover .vent-elice,
+.card-mare:hover .vent-vant path,
+.card-mare:hover .lumina-bec,
+.card-mare:hover .lumina-raze { animation-play-state: running; }
+.card-mare:hover .vent-vant,
+.card-mare:hover .lumina-raze { opacity: 1; }
+.vent-vant, .lumina-raze { opacity: 0; transition: opacity .3s ease; }
+
+.raze-soare   { transform-origin: center;     animation: pulse-raze 2s   infinite alternate ease-in-out; animation-play-state: paused; }
+.soare-ascuns { transform-origin: 16px 10px;  animation: pulse-raze 2.5s infinite alternate ease-in-out; animation-play-state: paused; }
+
+.picaturi line { animation: ploua 1.2s infinite linear; animation-play-state: paused; }
+.pic-1 { animation-delay: 0s; }
+.pic-2 { animation-delay: .4s; }
+.pic-3 { animation-delay: .2s; }
+
+.vent-elice { transform-origin: center; animation: invarte-elice 1.2s linear infinite; animation-play-state: paused; }
+.vent-vant path { animation: bate-vantul .8s linear infinite; animation-play-state: paused; }
+.vant-1 { animation-delay: 0s; }
+.vant-2 { animation-delay: .3s; }
+.vant-3 { animation-delay: .6s; }
+
+.lumina-bec  { animation: aprinde-bec 1s infinite alternate ease-in-out; animation-play-state: paused; }
+.lumina-raze { transform-origin: 12px 8px; animation: pulseaza-raze 1s infinite alternate ease-in-out; animation-play-state: paused; }
+
+.toarta-lacat {
+  transform-origin: 30% 50%;
+  transition: transform .4s cubic-bezier(.68,-.55,.265,1.55);
+}
+#card-status-usa:hover .toarta-lacat {
+  transform: translateY(-4px) rotate(-15deg);
+}
+
+/* ================= KEYFRAMES ================= */
+@keyframes pulsareLumina {
+  0%   { transform: translate(-50%,-50%) scale(.95); opacity: .08; }
+  100% { transform: translate(-50%,-50%) scale(1.05); opacity: .15; }
+}
+@keyframes scuturareEroare {
+  0%,100% { transform: translateX(0); }
+  10%,30%,50%,70%,90% { transform: translateX(-6px); }
+  20%,40%,60%,80%     { transform: translateX(6px); }
+}
+@keyframes rotireSpinner {
+  to { transform: rotate(360deg); }
+}
+@keyframes intrareLină {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes iesireLina {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(20px); }
+}
+@keyframes intrareLoginLina {
+  from { opacity: 0; transform: scale(.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes urcaFum {
+  0%   { transform: translateY(0) scale(.5); opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translateY(-24px) scale(2.5) translateX(6px); opacity: 0; }
+}
+@keyframes seq-soare {
+  0%,25%   { opacity: 1; transform: translate(0,0); }
+  30%,80%  { opacity: 0; transform: translate(-20px,0); }
+  85%      { opacity: 0; transform: translate(0,-20px); }
+  90%,100% { opacity: 1; transform: translate(0,0); }
+}
+@keyframes seq-nor-soare {
+  0%,25%   { opacity: 0; transform: translate(20px,0); }
+  30%,55%  { opacity: 1; transform: translate(0,0); }
+  60%,100% { opacity: 0; transform: translate(0,20px); }
+}
+@keyframes seq-ploaie {
+  0%,55%   { opacity: 0; transform: translate(0,-20px); }
+  60%,85%  { opacity: 1; transform: translate(0,0); }
+  90%,100% { opacity: 0; transform: translate(0,-20px); }
+}
+@keyframes pulse-raze {
+  0%   { transform: scale(.85);  stroke-width: 2;   opacity: .8; }
+  100% { transform: scale(1.15); stroke-width: 2.5; opacity: 1; }
+}
+@keyframes ploua {
+  0%      { transform: translateY(-3px); opacity: 0; }
+  30%,80% { opacity: 1; }
+  100%    { transform: translateY(8px); opacity: 0; }
+}
+@keyframes invarte-elice {
+  to { transform: rotate(360deg); }
+}
+@keyframes bate-vantul {
+  0%      { transform: translateX(-5px); opacity: 0; }
+  20%,80% { opacity: 1; }
+  100%    { transform: translateX(15px); opacity: 0; }
+}
+@keyframes aprinde-bec {
+  0%   { filter: drop-shadow(0 0 2px rgba(14,165,233,.2));  stroke-width: 2;   fill: transparent; }
+  100% { filter: drop-shadow(0 0 15px rgba(14,165,233,.8)); stroke-width: 2.3; fill: rgba(14,165,233,.2); }
+}
+@keyframes pulseaza-raze {
+  0%   { transform: scale(.85);  opacity: .2; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
+/* =================================================================
+   11. RESPONSIVE MOBILE (max-width: 768px)
+   Adaptari pentru telefon: sidebar full-screen, carduri pe coloana,
+   header sticky, login box mai mic.
+   NOTA: !important e intentionat aici — suprascrie regulile de desktop.
+================================================================= */
+/* =================================================================
+   10. RESPONSIVE MOBILE (max-width: 768px)
+   Adaptari pentru telefon: sidebar full-screen cu slide,
+   carduri pe coloana, header sticky, login box compact.
+   NOTA: !important e intentionat — suprascrie regulile de desktop.
+================================================================= */
+/* ================= MOBILE (≤ 768px) ================= */
+/* !important pastrat aici fiindca chiar suprascrie reguli de desktop */
+@media screen and (max-width: 768px) {
+  html, body {
+    overflow-x: hidden !important;
+    width: 100vw !important;
+    max-width: 100% !important;
+  }
+  body.no-scroll {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .header {
+    z-index: 10000 !important;
+    background-color: var(--bg-card-alt) !important;
+    width: 100% !important;
+  }
+  #sidebar {
+    top: 0 !important;
+    padding-top: 80px !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    background-color: #121212 !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overscroll-behavior: none !important;
+    transform: translateX(-100%) !important;
+    transition: transform .3s ease-in-out !important;
+  }
+  #sidebar.deschis { transform: translateX(0) !important; }
+  #sidebar a {
+    font-size: 20px !important;
+    padding: 15px 20px !important;
+    text-align: center !important;
+    border-bottom: 1px solid var(--border-tabel) !important;
+  }
+  .container-carduri,
+  .container-lumini,
+  .dashboard-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+    width: 100% !important;
+    padding: 0 10px !important;
+    box-sizing: border-box !important;
+  }
+  /* IMPORTANT: clasa .ascuns trebuie sa fie DUPA container-carduri ca sa o bata */
+  .ascuns,
+  .ascuns.container-carduri,
+  .ascuns.card,
+  #continut-esp.ascuns,
+  #continut-dispozitive.ascuns {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  .card, .card-mare {
+    width: 100% !important;
+    min-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+  .titlu-sistem {
+    font-size: 22px !important;
+    text-align: center !important;
+    margin-top: 20px !important;
+  }
+  .card-valoare,
+  .data-valoare,
+  #dash-lum-stare,
+  #dash-usa-stare { font-size: 18px !important; }
+  .continut {
+    padding: 15px !important;
+    margin-left: 0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+  .login-box {
+    width: 90% !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+  }
+
+
+}
+
+/* =================================================================
+   CONSOLA COMENZI DIAGNOSTIC (pagina "Stare Sistem")
+   Stanga: caseta de comanda + butoane. Dreapta: consola de raspuns (stil terminal).
+================================================================= */
+.panou-comenzi {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  margin-top: 15px;
+}
+.comenzi-stanga {
+  flex: 0 0 300px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-tabel);
+  border-radius: var(--r-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 16px rgba(0,0,0,.4);
+}
+.comenzi-stanga .btn-actiune { width: 100%; margin-top: 10px; }
+.comenzi-eticheta {
+  color: var(--txt-muted);
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+.input-comanda {
+  background: rgba(0,0,0,.35);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--r-sm);
+  padding: 12px;
+  font-size: 16px;
+  font-family: Consolas, "Courier New", monospace;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color .3s;
+}
+.input-comanda:focus { border-color: var(--accent); outline: none; }
+.input-comanda:disabled { opacity: .5; }
+.btn-reset-cmd { background: rgba(255,183,3,.15); border-color: rgba(255,183,3,.4); color: var(--galben); }
+.btn-reset-cmd:hover { background: rgba(255,183,3,.25); }
+.btn-gri-cmd { color: var(--txt-grey); }
+.btn-actiune:disabled { opacity: .5; cursor: not-allowed; }
+.comenzi-ajutor { margin-top: 14px; color: var(--txt-faint); font-size: 13px; }
+
+.comenzi-dreapta {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #05080f;
+  border: 1px solid var(--border-tabel);
+  border-radius: var(--r-md);
+  box-shadow: 0 8px 16px rgba(0,0,0,.4);
+  overflow: hidden;
+}
+.consola-titlu {
+  background: var(--bg-tabel);
+  color: var(--txt-muted);
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-tabel);
+}
+.consola-diag {
+  flex: 1 1 auto;
+  height: 340px;
+  overflow-y: auto;
+  padding: 14px 16px;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+.linie-consola { white-space: pre-wrap; word-break: break-word; }
+.linie-cmd    { color: var(--accent); margin-top: 10px; }
+.linie-titlu  { color: #fff; font-weight: bold; }
+.linie-info   { color: #cbd5e1; }
+.linie-ok     { color: var(--verde); font-weight: bold; }
+.linie-eroare { color: var(--rosu);  font-weight: bold; }
+.linie-avert  { color: var(--galben); font-weight: bold; }
+
+@media (max-width: 900px) {
+  .panou-comenzi { flex-direction: column; }
+  .comenzi-stanga { flex: 0 0 auto; }
+  .consola-diag { height: 280px; }
+}

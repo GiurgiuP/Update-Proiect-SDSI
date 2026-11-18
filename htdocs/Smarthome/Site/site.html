@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home 2026 - Autentificare</title>
+    <link rel="stylesheet" href="design.css">
+    <!-- 
+        Script de protectie login: daca sesiunea e salvata in localStorage,
+        ascunde ecranul de login inainte ca pagina sa se incarce vizual (evita flash).
+    -->
+    <script>
+        if (localStorage.getItem("rolUtilizator") && localStorage.getItem("ipUtilizator")) {
+            document.write('<style id="paznic-login">#ecran-login { display: none !important; }</style>');
+        }
+    </script>
+    <!-- 
+        Fix permisiuni mobile: clasa .fortat-ascuns ascunde continutul paginilor ESP si Dispozitive
+        pentru utilizatorii fara rol de admin. Specificitatea ID+clasa (0,1,1) bate regulile
+        CSS externe cu !important din media query-ul de mobile.
+    -->
+    <style>
+        #continut-esp.fortat-ascuns,
+        #continut-comenzi.fortat-ascuns,
+        #continut-dispozitive.fortat-ascuns {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+
+    <!-- ================================================================
+         ECRAN LOGIN
+         Vizibil doar cand utilizatorul nu are sesiune salvata.
+         Contine: logo animat casa, camp user, camp parola cu toggle vizibilitate, buton autentificare.
+    ================================================================ -->
+    <div id="ecran-login">
+        <div class="login-box">
+            <div class="logo-animat-container">
+                <svg class="casa-animata" viewBox="0 0 64 64" fill="none" 
+                stroke="#0ea5e9" stroke-width="3" 
+                stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M32 14 L10 32 h6 v20 h32 v-20 h6 Z" /><path d="M26 52 v-14 h12 v14" /><path d="M42 26 v-12 h6 v18" />
+                    <circle cx="45" cy="14" r="2" class="fum fum-1" fill="#0ea5e9" stroke="none" />
+                    <circle cx="45" cy="14" r="2" class="fum fum-2" fill="#0ea5e9" stroke="none" />
+                    <circle cx="45" cy="14" r="2" class="fum fum-3" fill="#0ea5e9" stroke="none" />
+                </svg>
+                <h2 class="titlu-holografic">Smart Home</h2>
+            </div>
+            <div class="input-group">
+                <input type="text" id="input-user" class="login-input" placeholder="Nume utilizator">
+            </div>
+            <div class="input-group">
+                <input type="password" id="input-pass" class="login-input" placeholder="Parolă">
+                <span id="ochi-parola" class="toggle-parola" onclick="toggleVisibilityParola()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z">
+                    </path><circle cx="12" cy="12" r="3"></circle></svg>
+                </span>
+            </div>
+            <button class="btn-login" onclick="verificaLogin()">Autentificare</button>
+            <div id="mesaj-eroare" class="mesaj-eroare"></div>
+        </div>
+    </div>
+
+
+    <!-- ================================================================
+         ECRAN APLICATIE
+         Ascuns initial (display:none), afisat dupa autentificare reusita.
+         Contine: header cu titlu, sidebar navigare, zona de continut cu toate paginile.
+    ================================================================ -->
+    <div id="ecran-aplicatie">
+        <div class="header">
+            <button class="btn-meniu" onclick="toggleMeniu()">☰ Meniu</button>
+            <h1 class="titlu-pagina">Sistem Smart Home</h1>
+        </div>
+        <div id="sidebar">
+            <a href="#" id="link-dashboard" class="activ" onclick="schimbaPagina('dashboard')">DashBoard Central</a>
+            <a href="#" id="link-ventilatie" onclick="schimbaPagina('ventilatie')">Sistem Ventilație</a>
+            <a href="#" id="link-lumina" onclick="schimbaPagina('lumina')">Sistem Iluminat</a>
+            <a href="#" id="link-lacat" onclick="schimbaPagina('lacat')">Sistem Acces Usă</a>
+            <a href="#" id="link-dispozitive" onclick="schimbaPagina('dispozitive')">Dispozitive Conectate</a>
+            <a href="#" id="link-esp" onclick="schimbaPagina('esp')">Stare Sistem</a>
+            <a href="#" style="color: #ef4444; margin-top: 20px; border-top: 1px solid #333;" onclick="delogare()"
+            >Deconectare</a>
+        </div>
+        <div class="continut" id="continut-principal">
+            
+
+            <!-- ============================================================
+                 PAGINA: DASHBOARD
+                 Pagina principala, activa implicit la login.
+                 Carduri: Vreme, Ventilatie, Iluminat, Acces Usa.
+                 Toate datele sunt actualizate automat la 2 secunde.
+            ============================================================ -->
+            <div id="pagina-dashboard" class="pagina activa">
+                <div class="titlu-vreme-container" style="justify-content: flex-start; margin-bottom: 30px;">
+                    <h2 class="titlu-sistem" style="font-size: 26px; border: none;">DashBoard</h2>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="card-mare">
+                        <div class="card-header">
+                            <h3>Vremea - <span id="vreme-nume-oras" style="color: #0ea5e9;">Timișoara</span></h3>
+                            <div class="card-icon vreme-animata-wrapper">
+                                <svg class="meteo-secventa meteo-soare" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4">
+                                </circle><g class="raze-soare"><line x1="12" y1="2" x2="12" y2="4"></line>
+                                <line x1="12" y1="20" x2="12" y2="22">
+                                </line><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line><line x1="17.66" y1="17.66"
+                                 x2="19.07" y2="19.07">
+                                </line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12">
+                                </line><line x1="4.93" y1="19.07" x2="6.34" y2="17.66">
+                                </line><line x1="17.66" y1="6.34" x2="19.07" y2="4.93">
+                                </line></g></svg>
+                                <svg class="meteo-secventa meteo-nor-soare" viewBox="0 0 24 24" fill="none" stroke="
+                                currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <g class="soare-ascuns"><circle cx="16" cy="8" r="4"></circle><line x1="16" y1="1" x2="16" y2="3">
+                                </line><line x1="19.5" y1="4.5" x2="21.5" y2="2.5">
+                                </line><line x1="21" y1="8" x2="23" y2="8"></line></g>
+                                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" fill="#1a1e29"></path></svg>
+                                <svg class="meteo-secventa meteo-ploaie" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path><g class="picaturi">
+                                <line x1="9" y1="20" x2="9" y2="22" class="pic-1"></line><line x1="13" y1="20" x2="13" y2="23" 
+                                class="pic-2">
+                                </line><line x1="17" y1="20" x2="17" y2="21" class="pic-3"></line></g></svg>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="data-group"><span class="data-label">Temperatură Exterior</span><span class="data-valoare">
+                            <span id="vreme-temp">--</span> °C</span></div>
+                            <div class="data-group"><span class="data-label">Vânt</span>
+                            <span class="data-valoare"><span id="vreme-vant">--</span> km/h</span></div>
+                            <div class="data-group" style="grid-column: span 2;"><span class="data-label">Condiții Meteo</span>
+                            <span class="data-valoare" id="vreme-status">--</span></div>
+                            <div class="data-group" style="grid-column: span 2; margin-top: 10px;">
+                                <div class="search-modern">
+                                    <input type="text" id="input-oras-vreme" placeholder="Caută alt oraș..." autocomplete="off">
+                                    <button onclick="schimbaOrasVreme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8">
+                                     </circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-mare" id="card-status-ventilatie">
+                        <div class="card-header">
+                            <h3>Sistem Ventilație</h3>
+                            <div class="card-icon ventilatie-animata-wrapper">
+                                <svg class="vent-elice" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45
+                                 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z">
+                                </path><circle cx="12" cy="12" r="2"></circle></svg>
+                                <svg class="vent-vant" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                                stroke-linecap="round"><path d="M20 7 L26 7" class="vant-1"></path><path d="M22 12 L29 12" class="vant-2">
+
+                                </path><path d="M20 17 L26 17" class="vant-3"></path></svg>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="data-group"><span class="data-label">Temperatură Cameră</span>
+                                <span class="data-valoare"><span id="dash-temp">--</span> °C</span></div>
+                            <div class="data-group"><span class="data-label">Prag Setat</span>
+                                <span class="data-valoare"><span id="dash-prag">--</span> °C</span></div>
+                            <div class="data-group"><span class="data-label">Mod Ventilație</span
+                                ><span class="data-valoare" id="dash-mod">--</span></div>
+                            <div class="data-group"><span class="data-label">Stare Releu</span><span class="data-valoare" id="dash-releu">
+                                --</span></div>
+                        </div>
+                    </div>
+
+                    <div class="card-mare" id="card-status-lumina">
+                        <div class="card-header">
+                            <h3>Iluminat Inteligent</h3>
+                            <div class="card-icon lumina-animata-wrapper">
+                                <svg class="lumina-raze" viewBox="0 0 24 24" fill="none" 
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                <line x1="12" y1="0" x2="12" y2="-3"></line><line x1="6" y1="3" x2="3" y2="0">
+                                </line><line x1="18" y1="3" x2="21" y2="0"></line></svg>
+                                <svg class="lumina-bec" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                                stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0
+                                 0 0 6 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="data-group" style="grid-column: span 2;"><span class="data-label">Stare Generală</span>
+                            <span class="data-valoare" id="dash-lum-stare" style="font-size: 26px;">--</span></div>
+                            <div class="data-group"><span class="data-label">Luminozitate</span><span class="data-valoare">
+                            <span id="dash-lum-proc">--</span>%</span></div>
+                            <div class="data-group" style="grid-column: span 2; display: flex; flex-direction: row; 
+                            align-items: center; gap: 15px; margin-top: 10px;">
+                                <span class="data-label" style="margin: 0;">Culoare Curentă:</span>
+                                <div id="dash-lum-culoare-box" style="width: 24px; height: 24px; border-radius: 50%;
+                                 border: 2px solid #555; background-color: #ffffff;"></div>
+                                <span id="dash-lum-culoare-text" style="font-weight: bold;">#FFFFFF</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-mare" id="card-status-usa">
+                        <div class="card-header">
+                            <h3>Acces Usă</h3>
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2">
+                                 </rect><path class="toarta-lacat" d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="data-group" style="grid-column: span 2;">
+                                <span class="data-label">Stare Ușă Intrare</span>
+                                <span class="data-valoare" id="dash-usa-stare" style="font-size: 26px;">--</span></div>
+                            <div class="data-group" style="grid-column: span 2; margin-top: 20px;">
+                            <span class="data-label">Ultima acțiune declanșată de:</span>
+                            <span class="data-valoare" id="dash-usa-user" style="font-size: 18px; color: #0ea5e9;">--</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ============================================================
+                 PAGINA: VENTILATIE
+                 Control sistem ventilatie: schimbare mod, setare prag temperatura,
+                 jurnal activitate. Moduri disponibile: AUTO / MANUAL ON / MANUAL OFF / DINAMIC.
+            ============================================================ -->
+            <div id="pagina-ventilatie" class="pagina">
+                <div class="sectiune-sistem">
+                    <h2 class="titlu-sistem">Panou Control - Sistem Ventilație</h2>
+                    <div class="container-carduri">
+                        <div class="card"><div class="card-titlu">Temp Camera</div><div class="card-valoare"><span id="vent-temp">--</span> °C</div></div>
+                        <div class="card">
+                            <div class="card-titlu">Control Mod</div>
+                            <div class="card-valoare" id="vent-mod">--</div>
+                            <button class="btn-actiune btn-albastru" id="btn-comuta-vent" onclick="schimbaMod()">Schimbă Modul</button>
+                        </div>
+                        <div class="card"><div class="card-titlu">Stare Releu</div><div class="card-valoare" id="vent-releu">--</div></div>
+                        <div class="card"><div class="card-titlu">Setare Prag</div><div class="card-valoare"><span id="vent-prag-afisaj">--</span> °C</div>
+                            <div id="grup-prag-actiune" style="margin-top: 10px; display: flex; gap: 5px;">
+                                <input type="number" id="input-prag" class="input-temp" value="26">
+                                <button class="btn-actiune btn-albastru" onclick="seteazaTemperatura()">Setează</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="grup-jurnal-vent" style="margin-top: 30px; text-align: center;">
+                        <button class="btn-actiune btn-albastru" onclick="deschideJurnalVentilatie()" style="padding: 10px 30px;
+                         font-size: 16px;">Deschide Istoric Modificări</button>
+                    </div>
+
+                    <div id="tabel-jurnal-vent" style="display: none; background-color: #242424; border: 1px solid #333;
+                     border-radius: 8px; margin-top: 15px; overflow: hidden;">
+                        <div style="background-color: #1e1e1e; padding: 15px; color: #0ea5e9; font-weight: bold;
+                         border-bottom: 1px solid #333;
+                         display: flex; justify-content: space-between; align-items: center;">
+                            <span>Jurnal de Activitate (Ultimele 10 comenzi)</span>
+                            <button class="btn-actiune" style="background-color: #ef4444; border: none;
+                             padding: 5px 15px; margin: 0;" onclick="inchideJurnalVentilatie()">✖ Închide</button>
+                        </div>
+                        <div class="tabel-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table>
+                                <thead><tr><th>Data / Ora</th><th>Comandă dată de (IP)</th><th>Temp. Cameră</th>
+                                    <th>Mod Acționat</th><th>Prag Setat</th></tr></thead>
+                                <tbody id="continut-tabel-jurnal"><tr>
+                                    <td colspan="5" style="text-align:center;">Se aduc datele...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ============================================================
+                 PAGINA: ILUMINAT
+                 Control bec Tapo L530: releu fizic, pornire/oprire soft,
+                 reglare intensitate luminozitate si culoare RGB.
+            ============================================================ -->
+            <div id="pagina-lumina" class="pagina">
+                <div class="sectiune-sistem">
+                    <h2 class="titlu-sistem">Panou Control - Sistem Iluminat inteligent</h2>
+                    <div class="container-carduri container-lumini"> 
+                        <div class="card"><div class="card-titlu">Stare Bec Tapo</div>
+                        <div class="card-valoare" id="lum-stare-gen">--</div></div>
+                        <div class="card"><div class="card-titlu">Curent Priza Releu</div>
+                        <div class="card-valoare" id="lum-stare-releu">--</div>
+                        <button class="btn-actiune btn-albastru" 
+                        id="btn-releu-lumina" onclick="toggleReleuLumina()">ON/OFF Releu</button></div>
+                        <div class="card"><div class="card-titlu">Software Bec (App)</div>
+                        <div class="card-valoare" id="lum-stare-soft">--</div>
+                        <button class="btn-actiune btn-albastru" 
+                        id="btn-soft-lumina" onclick="toggleSoftLumina()">Aprinde/Stinge Bec</button></div>
+                        
+                        <div class="card">
+                            <div class="card-titlu">Culoare RGB</div>
+                            <div class="card-valoare" style="display: flex;
+                             align-items: center; gap: 10px; margin-bottom: 15px;">
+                                <div id="lum-pagina-culoare-box" style="width: 24px;
+                                 height: 24px; border-radius: 50%; border: 2px solid #555;
+                                  background-color: #ffffff;"></div>
+                                <span id="lum-pagina-culoare-text" style="font-size: 18px;">#FFFFFF</span>
+                            </div>
+                            <div id="grup-culoare-actiune" style="display: flex;
+                             align-items: center; border-top: 1px solid #333; padding-top: 10px;">
+                                <input type="color" id="input-culoare" class="input-color" value="#ffffff">
+                                <div style="flex-grow: 1; text-align: right;">
+                                <button class="btn-actiune btn-albastru" 
+                                onclick="setareParametriLumina()">Schimbă</button></div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-titlu">Intensitate</div>
+                            <div class="card-valoare" style="margin-bottom: 10px;">
+                                <span id="lum-pagina-intensitate">100</span>%</div>
+                            <div id="grup-intensitate-actiune" style="border-top: 1px solid #333
+                            ; padding-top: 10px;">
+                                <input type="range" id="input-luminozitate" 
+                                class="slider-lumina" min="0" max="100" value="100"
+                                 oninput="document.getElementById('lum-pagina-intensitate')
+                                 .innerText = this.value">
+                                <button class="btn-actiune btn-albastru"
+                                 onclick="setareParametriLumina()">Schimbă</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ============================================================
+                 PAGINA: ACCES USA
+                 Control motor stepper usa: afisare stare curenta, ultimul utilizator
+                 care a actionat usa si buton de deschidere/inchidere.
+            ============================================================ -->
+            <div id="pagina-lacat" class="pagina">
+                <div class="sectiune-sistem">
+                    <h2 class="titlu-sistem">Panou Control - Ușă</h2>
+                    <div class="container-carduri">
+                        <div class="card"><div class="card-titlu">Stare Usă</div>
+                        <div class="card-valoare" id="lacat-stare">--</div></div>
+                        <div class="card"><div class="card-titlu">Ultima Acțiune (User)</div>
+                        <div class="card-valoare" id="lacat-user" style="color: #0ea5e9;">--</div></div>
+                        <div class="card" id="card-comanda-usa" style="flex: 2;">
+                            <div class="card-titlu">Comandă Usă</div>
+                            <button class="btn-actiune btn-albastru" style="padding: 15px; font-size: 18px; width: 100%;
+                            " onclick="actioneazaLacat()">Deschide / Închide Ușa</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ============================================================
+                 PAGINA: DISPOZITIVE CONECTATE
+                 Vizibila doar pentru admin.
+                 Afiseaza lista de dispozitive conectate (live) si permite
+                 gestionarea utilizatorilor (modificare rol, stergere).
+                 Contine si sectiunea de schimbare credentiale globale.
+            ============================================================ -->
+            <div id="pagina-dispozitive" class="pagina">
+                <div class="sectiune-sistem">
+                    <h2 class="titlu-sistem">Jurnal Acces / Dispozitive</h2>
+                    <div id="eroare-dispozitive" class="mesaj-eroare-acces" style="display:none;
+                    ">⛔ ACCES RESPINS: Nu aveți gradul necesar!</div>
+                    
+                    <div class="card" id="continut-dispozitive" style="padding: 0; overflow: hidden;
+                     background-color: transparent; border: none; box-shadow: none;">
+                        <div id="vedere-live" style="background-color: #242424; border: 1px solid #333;
+                         border-radius: 8px; overflow: hidden;">
+                            <div class="tabel-responsive">
+                                <table>
+                                    <thead><tr><th>#</th><th>Adresă IP Client</th><th>Ultima Conectare</th>
+                                        <th>Rol / Rank</th><th>Stare</th></tr></thead>
+                                    <tbody id="tabel-date-live"><tr><td colspan="5" style="text-align:center;
+                                    ">Se încarcă datele...</td></tr></tbody>
+                                </table>
+                            </div>
+                            <div style="padding: 15px; border-top: 1px solid #333; text-align: center;">
+                                <button class="btn-actiune btn-albastru" onclick="deschideArhiva()">Deschide Arhiva Completă</button>
+                            </div>
+                        </div>
+
+                        <div id="vedere-arhiva" style="display: none; background-color: #242424;
+                         border: 1px solid #333; border-radius: 8px; overflow: hidden; margin-top: 15px;">
+                            <div style="background-color: #1e1e1e; padding: 15px; color: #0ea5e9;
+                             font-weight: bold; border-bottom: 1px solid #333;">Baza de Date Completă</div>
+                            <div class="tabel-responsive" style="max-height: 400px; overflow-y: auto;">
+                                <table>
+                                    <thead><tr><th>IP Dispozitiv</th><th>Username</th><th>Rol Acces</th>
+                                        <th>Acțiuni</th></tr></thead>
+                                    <tbody id="tabel-date-arhiva"><tr><td colspan="4" style="text-align:center;
+                                    ">Se aduc datele din DB...</td></tr></tbody>
+                                </table>
+                            </div>
+                            <div style="padding: 15px; border-top: 1px solid #333; display: flex;
+                             justify-content: center; gap: 20px;">
+                                <button class="btn-actiune" style="background-color: #22c55e;
+                                 border: none; padding: 10px 25px;" onclick="salveazaArhiva()">Salvează Modificările</button>
+                                <button class="btn-actiune" style="background-color: #555;
+                                 border: none; padding: 10px 25px;" onclick="inchideArhiva()">Înapoi</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sectiune-securitate-superadmin" class="sectiune-sistem" style="margin-top: 30px;">
+                    <h2 class="titlu-sistem">Modificări pagină Log in</h2>
+                    <div class="container-carduri">
+                        <div class="card" style="flex: 1; max-width: 400px;">
+                            <div class="card-titlu">Schimbare User și Parolă Globală</div>
+                            <div style="color: #a0a0a0; font-size: 14px; margin-bottom: 15px;
+                            ">Aceste date vor fi folosite de TOȚI utilizatorii pentru a intra pe site.</div>
+                            <input type="text" id="input-new-user" class="input-temp" 
+                            placeholder="Nume utilizator nou..." style="width: 100%; margin-bottom: 10px;
+                             box-sizing: border-box; text-align: left; padding: 10px;">
+                            <input type="text" id="input-new-pass" class="input-temp" 
+                            placeholder="Parolă nouă..." style="width: 100%; margin-bottom: 15px; 
+                            box-sizing: border-box; text-align: left; padding: 10px;">
+                            <button class="btn-actiune btn-albastru" style="width: 100%;
+                             padding: 12px; font-size: 16px;" onclick="schimbaCredentiale()">Salvează Noile Date</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ============================================================
+                 PAGINA: STARE SISTEM (ESP32 + COMENZI DIAGNOSTIC)
+                 Vizibila doar pentru admin.
+                 Afiseaza: retea WiFi, IP local, uptime si utilizare RAM.
+                 Sub carduri: consola de comenzi pentru ecranul ILI9341 (SPI) si senzorul DHT11,
+                 plus istoricul ultimelor 10 comenzi. Comenzile trec prin diag.php (verificare admin pe server).
+            ============================================================ -->
+            <div id="pagina-esp" class="pagina">
+                <div class="sectiune-sistem">
+                    <h2 class="titlu-sistem">Stare Sistem (ESP32, Ecran, Senzor DHT11)</h2>
+                    <div id="eroare-esp" class="mesaj-eroare-acces" style="display:none;">
+                        ⛔ ACCES RESPINS: NU AVEȚI PERMISIUNILE NECESARE!</div>
+                    <div class="container-carduri" id="continut-esp">
+                        <div class="card"><div class="card-titlu">Rețea WiFi Conectată</div>
+                        <div class="card-valoare" id="esp-ssid">--</div></div>
+                        <div class="card"><div class="card-titlu">Adresă IP Locală</div>
+                        <div class="card-valoare" id="esp-ip">--</div></div>
+                        <div class="card"><div class="card-titlu">Timp Funcționare (Uptime)</div>
+                        <div class="card-valoare" id="esp-uptime" style="color: #22c55e;">--</div></div>
+                        <div class="card"><div class="card-titlu">Memorie RAM (Utilizat / Total)</div>
+                        <div class="card-valoare" id="esp-ram">--</div></div>
+                    </div>
+
+                    <!-- ===== COMENZI DIAGNOSTIC (doar admin) ===== -->
+                    <div id="continut-comenzi" class="fortat-ascuns">
+                        <h2 class="titlu-sistem" style="margin-top: 35px;">Comenzi Diagnostic</h2>
+                        <div class="panou-comenzi">
+                            <div class="comenzi-stanga">
+                                <label class="comenzi-eticheta" for="input-comanda">Comandă</label>
+                                <input type="text" id="input-comanda" class="input-comanda" autocomplete="off"
+                                       spellcheck="false" placeholder="ex: 29h, 04h, dht.temp, help"
+                                       onkeydown="if(event.key==='Enter'){trimiteComanda();}">
+                                <button class="btn-actiune btn-albastru" id="btn-trimite-cmd" onclick="trimiteComanda()">Trimite</button>
+                                <button class="btn-actiune btn-reset-cmd" id="btn-reset-cmd" onclick="resetareDiagnostic()">Reset la valori implicite</button>
+                                <button class="btn-actiune btn-gri-cmd" onclick="curataConsola()">Curăță consola</button>
+                                <div class="comenzi-ajutor">Scrie <b>help</b> pentru lista comenzilor.</div>
+                            </div>
+                            <div class="comenzi-dreapta">
+                                <div class="consola-titlu">Consolă răspuns</div>
+                                <div id="consola-diag" class="consola-diag"></div>
+                            </div>
+                        </div>
+
+                        <div id="grup-jurnal-cmd" style="margin-top: 25px; text-align: center;">
+                            <button class="btn-actiune btn-albastru" onclick="deschideJurnalComenzi()" style="padding: 10px 30px;
+                             font-size: 16px;">Deschide Istoric Comenzi</button>
+                        </div>
+
+                        <div id="tabel-jurnal-cmd" style="display: none; background-color: #242424; border: 1px solid #333;
+                         border-radius: 8px; margin-top: 15px; overflow: hidden;">
+                            <div style="background-color: #1e1e1e; padding: 15px; color: #0ea5e9; font-weight: bold;
+                             border-bottom: 1px solid #333;
+                             display: flex; justify-content: space-between; align-items: center;">
+                                <span>Istoric Comenzi (Ultimele 10)</span>
+                                <button class="btn-actiune" style="background-color: #ef4444; border: none;
+                                 padding: 5px 15px; margin: 0;" onclick="inchideJurnalComenzi()">✖ Închide</button>
+                            </div>
+                            <div class="tabel-responsive" style="max-height: 320px; overflow-y: auto;">
+                                <table>
+                                    <thead><tr><th>Data / Ora</th><th>Dată de (IP)</th><th>Rol</th>
+                                        <th>Comandă</th><th>Rezultat</th><th>Status</th></tr></thead>
+                                    <tbody id="continut-tabel-cmd"><tr>
+                                        <td colspan="6" style="text-align:center;">Se aduc datele...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
